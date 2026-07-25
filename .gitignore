@@ -1,0 +1,34 @@
+# Secretos y credenciales (¡NUNCA SUBIR!)
+.env
+
+# Sesiones de PHP locales
+sessions/
+
+# Habilidades del Agente locales
+.agents/
+skills-lock.json
+
+# Capturas de pantalla de pruebas
+pos_screenshot.png
+pos_real_fixed.png
+pos_real_fixed_v2.png
+pos_real_fixed_v3.png
+pos_real_fixed_final.png
+pos_real_fixed_final_batch.png
+dashboard_screenshot.png
+dashboard_screenshot_fixed.png
+dashboard_test_batch.png
+
+# Scripts de depuración y SQL locales
+insertar_productos_simple.sql
+insertar_productos.sql
+verificar_productos.php
+verificar_productos_v2.php
+debug_productos.php
+autologin.php
+
+# Carpetas del sistema o IDEs
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

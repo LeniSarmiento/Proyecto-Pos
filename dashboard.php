@@ -180,6 +180,6 @@ $page = $_GET['page'] ?? 'home';
         </main>
     </div>
     
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/main.js?v=1.0.1"></script>
 </body>
 </html>

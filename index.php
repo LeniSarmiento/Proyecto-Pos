@@ -133,6 +133,6 @@ $page = $_GET['page'] ?? 'pos';
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/main.js?v=1.0.1"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Endpoint: Guardar/Editar Producto
- * Inserta o actualiza un producto en Supabase
+ * Inserta o actualiza un producto en Supabase con soporte para archivos
  */
 
 header('Content-Type: application/json');
@@ -18,29 +18,61 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Obtener datos del request
-$input = json_decode(file_get_contents('php://input'), true);
+// Recolectar de $_POST (ya que se envía como FormData / multipart)
+$id = $_POST['id'] ?? null;
+$name = $_POST['name'] ?? '';
+$sku = $_POST['sku'] ?? '';
+$price = $_POST['price'] ?? '';
 
-if (!$input || empty($input['name']) || empty($input['sku']) || !isset($input['price'])) {
+if (empty($name) || empty($sku) || $price === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Datos inválidos o faltantes']);
     exit;
 }
 
 try {
-    $id = $input['id'] ?? null;
+    // Procesar la subida física del archivo si existe
+    $imageUrl = $_POST['image_url'] ?? ''; // Conservar imagen previa por defecto
+    
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+        $tmpPath = $_FILES['image_file']['tmp_name'];
+        $fileName = $_FILES['image_file']['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        if (in_array($fileExtension, $allowedExtensions)) {
+            $uploadDir = __DIR__ . '/../uploads/';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            
+            // Nombre de archivo seguro e irrepetible
+            $newFileName = 'prod_' . date('YmdHis') . '_' . uniqid() . '.' . $fileExtension;
+            $destPath = $uploadDir . $newFileName;
+            
+            if (move_uploaded_file($tmpPath, $destPath)) {
+                $imageUrl = 'uploads/' . $newFileName;
+            } else {
+                throw new Exception('No se pudo guardar la imagen en el servidor');
+            }
+        } else {
+            throw new Exception('Formato de imagen no permitido (solo JPG, PNG, WEBP, SVG)');
+        }
+    }
     
     $productData = [
-        'name' => trim($input['name']),
-        'sku' => strtoupper(trim($input['sku'])),
-        'category' => trim($input['category'] ?? 'General'),
-        'cost' => floatval($input['cost'] ?? 0),
-        'price' => floatval($input['price']),
-        'stock' => intval($input['stock'] ?? 0),
-        'min_stock' => intval($input['min_stock'] ?? 5),
-        'image_url' => trim($input['image_url'] ?? ''),
-        'description' => trim($input['description'] ?? ''),
-        'is_active' => (bool)($input['is_active'] ?? true),
+        'name' => trim($name),
+        'sku' => strtoupper(trim($sku)),
+        'category' => trim($_POST['category'] ?? 'General'),
+        'cost' => floatval($_POST['cost'] ?? 0),
+        'price' => floatval($price),
+        'stock' => intval($_POST['stock'] ?? 0),
+        'min_stock' => intval($_POST['min_stock'] ?? 5),
+        'image_url' => $imageUrl,
+        'sizes' => trim($_POST['sizes'] ?? ''),
+        'igv' => floatval($_POST['igv'] ?? 18.00),
+        'description' => trim($_POST['description'] ?? ''),
+        'is_active' => (bool)($_POST['is_active'] ?? true),
         'updated_at' => date('c')
     ];
 

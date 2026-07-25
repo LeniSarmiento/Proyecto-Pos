@@ -3,14 +3,22 @@
  * Vista de Administración de Productos (CRUD)
  */
 ?>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-2xl);">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-2xl); flex-wrap: wrap; gap: var(--spacing-md);">
     <div>
         <h1 style="font-size: 2rem; margin-bottom: var(--spacing-sm);">Gestión de Productos</h1>
         <p class="text-muted">Administra el catálogo, stock y precios de tu tienda</p>
     </div>
-    <button onclick="openProductModal()" class="btn btn-primary">
-        ➕ Nuevo Producto
-    </button>
+    <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
+        <a href="actions/download_template.php" class="btn btn-secondary" style="font-weight:600;" target="_blank">
+            📥 Descargar Plantilla Excel
+        </a>
+        <button onclick="openImportModal()" class="btn btn-secondary" style="background: var(--color-accent); border-color: var(--color-accent); color: white; font-weight:600;">
+            📤 Importar Excel (CSV)
+        </button>
+        <button onclick="openProductModal()" class="btn btn-primary" style="font-weight:600;">
+            ➕ Nuevo Producto
+        </button>
+    </div>
 </div>
 
 <!-- Filtros y Búsqueda -->
@@ -121,9 +129,25 @@
                     </div>
                 </div>
 
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); align-items: end;">
+                    <div>
+                        <label class="form-label">Tallas (Separadas por comas)</label>
+                        <input type="text" id="prod-sizes" name="sizes" class="form-input" placeholder="Ej. S, M, L, XL">
+                    </div>
+                    <div>
+                        <label class="form-label">IGV (%)</label>
+                        <select id="prod-igv" name="igv" class="form-select" required>
+                            <option value="18.00">18.00 % (Estándar)</option>
+                            <option value="10.50">10.50 % (Reducido)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">URL de la Imagen (Opcional)</label>
-                    <input type="text" id="prod-image" name="image_url" class="form-input" placeholder="https://ejemplo.com/imagen.jpg">
+                    <label class="form-label">Cargar Imagen del Producto</label>
+                    <input type="file" id="prod-image-file" name="image_file" class="form-input" accept="image/*" style="padding: 0.35rem 0.75rem;">
+                    <input type="hidden" id="prod-image" name="image_url">
+                    <small class="text-muted" id="prod-image-text" style="display:block; margin-top:4px;"></small>
                 </div>
 
                 <div class="form-group">
@@ -139,6 +163,36 @@
             <div class="card-footer" style="display: flex; justify-content: flex-end; gap: var(--spacing-md);">
                 <button type="button" onclick="closeProductModal()" class="btn btn-secondary">Cancelar</button>
                 <button type="submit" class="btn btn-primary" id="btn-save-product">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Importar Excel (CSV) -->
+<div id="import-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: var(--spacing-md);">
+    <div class="card" style="width: 100%; max-width: 550px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin:0;">📤 Importar Productos (Excel / CSV)</h3>
+            <button onclick="closeImportModal()" class="btn btn-sm btn-secondary" style="border:none; font-size: 1.25rem;">&times;</button>
+        </div>
+        <form id="import-form" onsubmit="submitImport(event)">
+            <div class="card-body">
+                <p class="text-muted" style="font-size: 0.9375rem; margin-bottom: var(--spacing-lg);">
+                    Selecciona tu plantilla CSV rellenada para cargar todos los productos de forma masiva en la base de datos de Supabase.
+                </p>
+                
+                <div class="form-group">
+                    <label class="form-label">Seleccionar Archivo Plantilla (.csv)</label>
+                    <input type="file" id="import-file" name="import_file" class="form-input" accept=".csv" required style="padding: 0.35rem 0.75rem;">
+                    <small class="text-muted" style="display:block; margin-top:6px; line-height:1.4;">
+                        * Los delimitadores de columnas deben ser punto y coma (;) o comas.<br>
+                        * Las columnas de Tallas (sizes) e IGV (18.00 o 10.50) se procesarán de forma automática.
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer" style="display: flex; justify-content: flex-end; gap: var(--spacing-md);">
+                <button type="button" onclick="closeImportModal()" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn btn-accent" id="btn-submit-import">Comenzar Importación</button>
             </div>
         </form>
     </div>
@@ -240,6 +294,10 @@
         document.getElementById('product-form').reset();
         document.getElementById('product-id').value = "";
         document.getElementById('prod-sku').disabled = false;
+        document.getElementById('prod-image').value = "";
+        document.getElementById('prod-image-text').textContent = "";
+        document.getElementById('prod-sizes').value = "";
+        document.getElementById('prod-igv').value = "18.00";
         const modal = document.getElementById('product-modal');
         modal.style.display = 'flex';
     }
@@ -261,6 +319,18 @@
         document.getElementById('prod-stock').value = product.stock || 0;
         document.getElementById('prod-min-stock').value = product.min_stock || 5;
         document.getElementById('prod-image').value = product.image_url || '';
+        
+        // Cargar texto explicativo si ya tiene imagen
+        const imageText = document.getElementById('prod-image-text');
+        if (product.image_url) {
+            imageText.textContent = "Imagen actual: " + product.image_url.split('/').pop();
+        } else {
+            imageText.textContent = "Sin imagen cargada";
+        }
+
+        document.getElementById('prod-sizes').value = product.sizes || '';
+        document.getElementById('prod-igv').value = parseFloat(product.igv || 18.00).toFixed(2);
+        
         document.getElementById('prod-desc').value = product.description || '';
         document.getElementById('prod-active').checked = product.is_active;
 
@@ -276,27 +346,16 @@
         btn.innerHTML = '⏳ Guardando...';
 
         const id = document.getElementById('product-id').value;
-        const data = {
-            id: id || null,
-            name: document.getElementById('prod-name').value,
-            sku: document.getElementById('prod-sku').value,
-            category: document.getElementById('prod-category').value,
-            cost: parseFloat(document.getElementById('prod-cost').value),
-            price: parseFloat(document.getElementById('prod-price').value),
-            stock: parseInt(document.getElementById('prod-stock').value),
-            min_stock: parseInt(document.getElementById('prod-min-stock').value),
-            image_url: document.getElementById('prod-image').value,
-            description: document.getElementById('prod-desc').value,
-            is_active: document.getElementById('prod-active').checked
-        };
+        const form = document.getElementById('product-form');
+        const formData = new FormData(form);
+        
+        // Agregar valores manuales de controles especiales
+        formData.set('is_active', document.getElementById('prod-active').checked ? '1' : '0');
 
         try {
             const response = await fetch('actions/save_product.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData // Envía multipart/form-data automáticamente con archivos
             });
             const result = await response.json();
 
@@ -338,6 +397,50 @@
         } catch (error) {
             console.error('Error:', error);
             showToast('Error de red', 'error');
+        }
+    }
+
+    function openImportModal() {
+        document.getElementById('import-form').reset();
+        const modal = document.getElementById('import-modal');
+        modal.style.display = 'flex';
+    }
+
+    function closeImportModal() {
+        const modal = document.getElementById('import-modal');
+        modal.style.display = 'none';
+    }
+
+    async function submitImport(event) {
+        event.preventDefault();
+        const btn = document.getElementById('btn-submit-import');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Procesando e Importando...';
+
+        const form = document.getElementById('import-form');
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('actions/import_products.php', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                showToast(`🎉 ¡Importación exitosa! Se cargaron ${result.imported} productos correctamente.`, 'success');
+                closeImportModal();
+                loadAdminProducts();
+            } else {
+                showToast(result.error || 'Error durante la importación', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error de conexión o formato de archivo inválido', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
     }
 

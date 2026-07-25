@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.products (
     min_stock INTEGER DEFAULT 5,
     category VARCHAR(100),
     image_url TEXT,
+    sizes VARCHAR(255),
+    igv DECIMAL(5, 2) DEFAULT 18.00,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())

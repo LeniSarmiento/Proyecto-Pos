@@ -41,19 +41,16 @@ try {
         
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
         if (in_array($fileExtension, $allowedExtensions)) {
-            $uploadDir = __DIR__ . '/../uploads/';
-            if (!is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0777, true);
-            }
-            
-            // Nombre de archivo seguro e irrepetible
             $newFileName = 'prod_' . date('YmdHis') . '_' . uniqid() . '.' . $fileExtension;
-            $destPath = $uploadDir . $newFileName;
+            $fileContent = file_get_contents($tmpPath);
             
-            if (move_uploaded_file($tmpPath, $destPath)) {
-                $imageUrl = 'uploads/' . $newFileName;
+            // Subir a Supabase Storage (Bucket: products)
+            $uploadResult = $supabase->uploadFile('products', $newFileName, $fileContent, $newFileName);
+            
+            if (isset($uploadResult['success']) && $uploadResult['success']) {
+                $imageUrl = $uploadResult['url'];
             } else {
-                throw new Exception('No se pudo guardar la imagen en el servidor');
+                throw new Exception('Error subiendo imagen a Supabase Storage: ' . json_encode($uploadResult['error'] ?? ''));
             }
         } else {
             throw new Exception('Formato de imagen no permitido (solo JPG, PNG, WEBP, SVG)');

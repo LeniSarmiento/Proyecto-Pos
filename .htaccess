@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# Bloquear acceso a carpetas sensibles y variables de entorno
+<DirectoryMatch "^(\.git|\.agents|config|database|sessions)">
+    Require all denied
+</DirectoryMatch>
+
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# Ocultar listado de directorios
+Options -Indexes

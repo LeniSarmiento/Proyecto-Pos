@@ -11,6 +11,8 @@ $page = $_GET['page'] ?? 'pos';
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= APP_NAME ?> - Sistema de Punto de Venta</title>
     <meta name="description" content="Sistema moderno de punto de venta para tu negocio">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/img/favicon.png">
@@ -48,6 +50,11 @@ $page = $_GET['page'] ?? 'pos';
             </nav>
             
             <div class="flex items-center gap-md">
+                <!-- Modo Oscuro -->
+                <button onclick="toggleDarkMode()" class="btn btn-sm btn-secondary" style="border-radius: 50%; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Modo Oscuro (Beta)">
+                    🌙
+                </button>
+
                 <!-- Botón del Carrito -->
                 <?php if ($page === 'pos'): ?>
                     <button onclick="toggleCart()" class="btn btn-primary btn-sm" style="position: relative;">

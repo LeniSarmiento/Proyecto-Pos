@@ -317,6 +317,10 @@ class SaleManager {
                     cartPanel.classList.remove('open');
                 }
                 
+                // Refocus automático
+                const searchInput = document.getElementById('product-search');
+                if (searchInput) searchInput.focus();
+                
                 // Mostrar comprobante si existe
                 if (result.sale_number) {
                     setTimeout(() => {
@@ -523,3 +527,91 @@ window.closeCart = closeCart;
 window.toggleMenu = toggleMenu;
 window.formatCurrency = formatCurrency;
 window.showToast = showToast;
+// ============================================
+// AUDIO FEEDBACK (Beeps)
+// ============================================
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContextClass();
+
+function playBeep(type = 'success') {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    if (type === 'success') {
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    } else {
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+}
+
+// Modificar CartManager para reproducir sonido
+const originalCartManagerAdd = CartManager.add;
+CartManager.add = function(product, quantity = 1) {
+    if (product.stock <= 0) {
+        playBeep('error');
+        showToast('Producto sin stock', 'error');
+        return;
+    }
+    playBeep('success');
+    originalCartManagerAdd.call(this, product, quantity);
+};
+
+// ============================================
+// SHORTCUTS (Atajos de Teclado Zero-Mouse)
+// ============================================
+document.addEventListener('keydown', (e) => {
+    // F2: Enfocar barra de búsqueda
+    if (e.key === 'F2') {
+        e.preventDefault();
+        const searchInput = document.getElementById('product-search');
+        if (searchInput) searchInput.focus();
+    }
+    // F4: Abrir panel de pago / carrito
+    if (e.key === 'F4') {
+        e.preventDefault();
+        const cartPanel = document.querySelector('.cart-panel');
+        if (cartPanel && !cartPanel.classList.contains('open')) {
+            toggleCart();
+        }
+    }
+    // F8 o ESC: Limpiar / Cerrar carrito
+    if (e.key === 'F8' || e.key === 'Escape') {
+        const cartPanel = document.querySelector('.cart-panel');
+        if (cartPanel && cartPanel.classList.contains('open')) {
+            closeCart();
+        }
+    }
+});
+
+// ============================================
+// DARK MODE TOGGLE & PWA
+// ============================================
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('pos-dark-mode', isDark);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('pos-dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('PWA Service Worker Registrado'))
+            .catch(err => console.error('Error en Service Worker', err));
+    }
+});

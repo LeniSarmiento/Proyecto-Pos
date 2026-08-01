@@ -946,3 +946,86 @@ a:hover {
         background-color: white;
     }
 }
+/* ============================================
+   MODO OSCURO (DARK MODE)
+   ============================================ */
+body.dark-mode {
+    --color-bg: #0f172a;
+    --color-bg-white: #1e293b;
+    --color-text: #f8fafc;
+    --color-text-light: #94a3b8;
+    --color-border: #334155;
+}
+
+body.dark-mode .card,
+body.dark-mode .site-header,
+body.dark-mode .cart-panel,
+body.dark-mode .dashboard-sidebar {
+    background-color: var(--color-bg-white);
+    border-color: var(--color-border);
+}
+
+body.dark-mode .table th {
+    background-color: #0f172a;
+    color: #cbd5e1;
+}
+
+body.dark-mode .form-input,
+body.dark-mode .form-select,
+body.dark-mode .form-textarea {
+    background-color: #0f172a;
+    color: white;
+    border-color: #475569;
+}
+
+/* ============================================
+   IMPRESIÓN TICKETERA TÉRMICA (80mm)
+   ============================================ */
+@media print {
+    @page {
+        margin: 0;
+        size: 80mm auto; /* Ticket térmico de 80mm */
+    }
+    
+    body * {
+        visibility: hidden;
+    }
+    
+    #sale-detail-modal, #sale-detail-modal * {
+        visibility: visible;
+    }
+    
+    #sale-detail-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        margin: 0;
+        padding: 5mm;
+        background: white !important;
+        color: black !important;
+        box-shadow: none;
+        display: block !important;
+    }
+    
+    .card-header button, .card-footer, .tag {
+        display: none !important;
+    }
+    
+    .card-body {
+        padding: 0;
+    }
+    
+    .table th, .table td {
+        padding: 2px 0;
+        border-bottom: 1px dashed #000;
+        font-size: 12px;
+        color: black !important;
+    }
+    
+    #detail-title {
+        font-size: 16px;
+        text-align: center;
+        margin-bottom: 10px !important;
+    }
+}

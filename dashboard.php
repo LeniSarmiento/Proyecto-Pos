@@ -16,6 +16,8 @@ $page = $_GET['page'] ?? 'home';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - <?= APP_NAME ?></title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -157,6 +159,9 @@ $page = $_GET['page'] ?? 'home';
         
         <!-- Contenido Principal -->
         <main class="dashboard-main">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: var(--spacing-md);">
+                <button onclick="toggleDarkMode()" class="btn btn-sm btn-secondary" style="border-radius: var(--radius-full);">🌙 Oscuro</button>
+            </div>
             <?php
             switch ($page) {
                 case 'products':

@@ -1,11 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Bloquear acceso a carpetas sensibles y metadatos
+    RewriteRule ^(\.git|\.agents|config|database|sessions) - [F,L]
 </IfModule>
-
-# Bloquear acceso a carpetas sensibles y variables de entorno
-<DirectoryMatch "^(\.git|\.agents|config|database|sessions)">
-    Require all denied
-</DirectoryMatch>
 
 <FilesMatch "^\.env">
     Require all denied

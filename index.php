@@ -3,6 +3,12 @@ require_once __DIR__ . '/config/supabase.php';
 
 // Determinar página actual
 $page = $_GET['page'] ?? 'pos';
+
+// Proteger rutas privadas (Redirigir a login si no está autenticado)
+$publicPages = ['login'];
+if (!in_array($page, $publicPages) && !isLoggedIn()) {
+    $page = 'login';
+}
 ?>
 <!doctype html>
 <html lang="es">

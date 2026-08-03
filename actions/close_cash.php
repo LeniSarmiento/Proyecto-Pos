@@ -56,13 +56,13 @@ try {
         $notes .= $log;
     }
 
-    // Actualizar registro de caja a cerrado
+    // Actualizar registro de caja a cerrado utilizando Service Key de forma segura en el servidor (Bypass RLS)
     $result = $supabase->update('cash_register', $id, [
         'closing_amount' => $closingAmount,
         'status' => 'closed',
         'closed_at' => date('c'),
         'notes' => $notes
-    ]);
+    ], true);
 
     if ($result['status'] === 200) {
         echo json_encode([

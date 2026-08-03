@@ -191,15 +191,15 @@ class SupabaseClient {
     /**
      * Insertar datos en una tabla
      */
-    public function insert($table, $data) {
-        return $this->request('/rest/v1/' . $table, 'POST', $data);
+    public function insert($table, $data, $useServiceKey = false) {
+        return $this->request('/rest/v1/' . $table, 'POST', $data, $useServiceKey);
     }
     
     /**
      * Actualizar datos en una tabla
      */
-    public function update($table, $id, $data) {
-        return $this->request('/rest/v1/' . $table . '?id=eq.' . $id, 'PATCH', $data);
+    public function update($table, $id, $data, $useServiceKey = false) {
+        return $this->request('/rest/v1/' . $table . '?id=eq.' . $id, 'PATCH', $data, $useServiceKey);
     }
     
     /**

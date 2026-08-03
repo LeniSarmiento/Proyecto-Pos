@@ -99,6 +99,36 @@
     </div>
 </div>
 
+<!-- Reporte de Productos por Medio de Pago -->
+<div class="card" style="margin-bottom: var(--spacing-2xl);">
+    <div class="card-header">
+        <h3 style="font-size: 1.125rem;">📦 Control Interno: Unidades Vendidas por Medio de Pago</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-container" style="box-shadow: none; border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <table class="table" style="font-size: 0.9375rem;">
+                <thead>
+                    <tr style="background: var(--color-bg);">
+                        <th>Producto / Modelo</th>
+                        <th>Categoría</th>
+                        <th class="text-center" style="width: 80px;">💵 Efec.</th>
+                        <th class="text-center" style="width: 80px;">💳 Tarj.</th>
+                        <th class="text-center" style="width: 80px;">📱 Yape</th>
+                        <th class="text-center" style="width: 80px;">💰 Trans.</th>
+                        <th class="text-center" style="width: 100px;">Cant. Total</th>
+                        <th class="text-right">Recaudado Brut. (S/)</th>
+                    </tr>
+                </thead>
+                <tbody id="report-product-methods-body">
+                    <tr>
+                        <td colspan="8" class="text-center text-muted" style="padding: 2rem;">Cargando control interno de productos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
     async function loadReports() {
         try {
@@ -270,6 +300,31 @@
                 document.getElementById('rep-net-profit').textContent = formatCurrency(netProfit);
                 document.getElementById('rep-tax-total').textContent = formatCurrency(totalTax);
                 document.getElementById('rep-margin-profit').textContent = `${margin.toFixed(1)}%`;
+            }
+
+            // 3. Cargar reporte de productos vendidos por medio de pago
+            const prodReportResponse = await fetch('actions/get_products_sales_report.php');
+            const prodReportResult = await prodReportResponse.json();
+
+            const prodReportBody = document.getElementById('report-product-methods-body');
+            if (prodReportResult.success && prodReportResult.data.length > 0) {
+                prodReportBody.innerHTML = prodReportResult.data.map(p => `
+                    <tr>
+                        <td>
+                            <strong>${p.name}</strong><br>
+                            <small class="text-muted">SKU: ${p.sku}</small>
+                        </td>
+                        <td>${p.category}</td>
+                        <td class="text-center" style="font-weight: 600; color: var(--color-success);">${p.cash_qty > 0 ? p.cash_qty : '<span class="text-muted" style="font-weight:400;">—</span>'}</td>
+                        <td class="text-center" style="font-weight: 600; color: var(--color-primary);">${p.card_qty > 0 ? p.card_qty : '<span class="text-muted" style="font-weight:400;">—</span>'}</td>
+                        <td class="text-center" style="font-weight: 600; color: var(--color-accent);">${p.yape_qty > 0 ? p.yape_qty : '<span class="text-muted" style="font-weight:400;">—</span>'}</td>
+                        <td class="text-center" style="font-weight: 600; color: var(--color-secondary);">${p.transfer_qty > 0 ? p.transfer_qty : '<span class="text-muted" style="font-weight:400;">—</span>'}</td>
+                        <td class="text-center"><span class="tag" style="background: rgba(37,99,235,0.05); color: var(--color-primary); font-weight:700; padding: 4px 10px;">${p.total_qty} un.</span></td>
+                        <td class="text-right"><strong>${formatCurrency(p.total_revenue)}</strong></td>
+                    </tr>
+                `).join('');
+            } else {
+                prodReportBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding: 2rem;">Aún no se registran unidades vendidas en sistema</td></tr>';
             }
 
         } catch (error) {

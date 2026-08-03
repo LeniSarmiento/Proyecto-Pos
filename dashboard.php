@@ -138,6 +138,10 @@ $page = $_GET['page'] ?? 'home';
                     <span>📋</span>
                     <span>Ventas</span>
                 </a>
+                <a href="dashboard.php?page=cash_history" class="sidebar-link <?= $page === 'cash_history' ? 'active' : '' ?>">
+                    <span>💵</span>
+                    <span>Historial de Caja</span>
+                </a>
                 <a href="dashboard.php?page=customers" class="sidebar-link <?= $page === 'customers' ? 'active' : '' ?>">
                     <span>👥</span>
                     <span>Clientes</span>
@@ -176,6 +180,9 @@ $page = $_GET['page'] ?? 'home';
                     break;
                 case 'sales':
                     include 'pages/admin_sales.php';
+                    break;
+                case 'cash_history':
+                    include 'pages/admin_cash_history.php';
                     break;
                 case 'customers':
                     include 'pages/admin_customers.php';

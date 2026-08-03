@@ -37,12 +37,31 @@ if (!$id || $closingAmount === null || $closingAmount < 0) {
 }
 
 try {
+    $notes = trim($input['notes'] ?? '');
+    $arqueo = $input['arqueo_detallado'] ?? null;
+    
+    // Si se envía arqueo detallado, formatearlo en un reporte textual para auditoría
+    if ($isDetailed = !empty($arqueo)) {
+        $log = "\n\n=== ARQUEO DETALLADO DE EFECTIVO ===";
+        $log .= "\n💵 EFECTIVO  -> Esperado: S/ " . number_format($arqueo['cash']['expected'], 2) . " | Real: S/ " . number_format($arqueo['cash']['actual'], 2) . " | Dif: S/ " . number_format($arqueo['cash']['diff'], 2);
+        $log .= "\n💳 TARJETA   -> Esperado: S/ " . number_format($arqueo['card']['expected'], 2) . " | Real: S/ " . number_format($arqueo['card']['actual'], 2) . " | Dif: S/ " . number_format($arqueo['card']['diff'], 2);
+        $log .= "\n📱 YAPE/PLIN -> Esperado: S/ " . number_format($arqueo['yape']['expected'], 2) . " | Real: S/ " . number_format($arqueo['yape']['actual'], 2) . " | Dif: S/ " . number_format($arqueo['yape']['diff'], 2);
+        
+        $totalExp = floatval($arqueo['cash']['expected'] + $arqueo['card']['expected'] + $arqueo['yape']['expected']);
+        $totalAct = floatval($arqueo['cash']['actual'] + $arqueo['card']['actual'] + $arqueo['yape']['actual']);
+        $totalDiff = $totalAct - $totalExp;
+        
+        $log .= "\n" . str_repeat("-", 45);
+        $log .= "\n📊 BALANCE GENERAL: Esperado: S/ " . number_format($totalExp, 2) . " | Real: S/ " . number_format($totalAct, 2) . " | Dif: S/ " . number_format($totalDiff, 2);
+        $notes .= $log;
+    }
+
     // Actualizar registro de caja a cerrado
     $result = $supabase->update('cash_register', $id, [
         'closing_amount' => $closingAmount,
         'status' => 'closed',
         'closed_at' => date('c'),
-        'notes' => trim($input['notes'] ?? '')
+        'notes' => $notes
     ]);
 
     if ($result['status'] === 200) {

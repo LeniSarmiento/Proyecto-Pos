@@ -31,36 +31,50 @@ try {
 
     if ($result['status'] === 200 && !empty($result['data'])) {
         $activeSession = $result['data'][0];
-        
-        // 2. Calcular ventas en efectivo de hoy para este cajero desde que abrió la caja
         $openedAt = $activeSession['opened_at'];
         
+        // 2. Obtener todas las ventas pagadas de este cajero desde la apertura
         $salesResult = $supabase->from('sales', [
-            'select' => 'total',
+            'select' => 'total, payment_method',
             'user_id' => 'eq.' . $user['id'],
-            'payment_method' => 'eq.cash',
             'payment_status' => 'eq.paid',
             'created_at' => 'gte.' . $openedAt
         ]);
 
         $cashSalesTotal = 0;
+        $cardSalesTotal = 0;
+        $yapeSalesTotal = 0;
+
         if ($salesResult['status'] === 200 && !empty($salesResult['data'])) {
             foreach ($salesResult['data'] as $sale) {
-                $cashSalesTotal += floatval($sale['total']);
+                $method = $sale['payment_method'] ?? 'cash';
+                $total = floatval($sale['total'] ?? 0);
+                
+                if ($method === 'cash') {
+                    $cashSalesTotal += $total;
+                } elseif ($method === 'card') {
+                    $cardSalesTotal += $total;
+                } elseif ($method === 'yape') {
+                    $yapeSalesTotal += $total;
+                }
             }
         }
 
         echo json_encode([
             'success' => true,
             'session' => $activeSession,
-            'cash_sales_total' => $cashSalesTotal
+            'cash_sales_total' => $cashSalesTotal,
+            'card_sales_total' => $cardSalesTotal,
+            'yape_sales_total' => $yapeSalesTotal
         ]);
     } else {
         // No hay caja activa
         echo json_encode([
             'success' => true,
             'session' => null,
-            'cash_sales_total' => 0
+            'cash_sales_total' => 0,
+            'card_sales_total' => 0,
+            'yape_sales_total' => 0
         ]);
     }
     

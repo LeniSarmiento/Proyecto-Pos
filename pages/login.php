@@ -42,15 +42,21 @@ if (isLoggedIn()) {
                 
                 <div class="form-group">
                     <label for="password" class="form-label">Contraseña</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-input" 
-                        placeholder="••••••••"
-                        required
-                        autocomplete="current-password"
-                    >
+                    <div style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.25rem;" id="toggle-pw-btn" title="Ver contraseña">
+                            👁️
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top: var(--spacing-lg);">
@@ -107,4 +113,18 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         btn.innerHTML = originalText;
     }
 });
+
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('toggle-pw-btn');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+        toggleBtn.title = "Ocultar contraseña";
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+        toggleBtn.title = "Ver contraseña";
+    }
+}
 </script>

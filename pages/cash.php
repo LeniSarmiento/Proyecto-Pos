@@ -80,36 +80,71 @@
             </div>
 
             <!-- Cierre de Caja Form -->
-            <h3 style="font-size: 1.25rem; margin-bottom: var(--spacing-md); border-bottom: 2px solid var(--color-border); padding-bottom: var(--spacing-sm);">🔒 Cerrar Caja y Finalizar Turno</h3>
+            <h3 style="font-size: 1.25rem; margin-bottom: var(--spacing-md); border-bottom: 2px solid var(--color-border); padding-bottom: var(--spacing-sm);">🔒 Cerrar Caja y Arqueo Detallado</h3>
             
             <form id="close-cash-form" onsubmit="handleCloseCash(event)">
                 <input type="hidden" id="cash-session-id" name="id">
                 
-                <div class="form-group">
-                    <label class="form-label" style="font-size: 1.125rem;">Monto Real en Caja (Arqueo de Efectivo)</label>
-                    <p class="text-muted" style="font-size: 0.8125rem; margin-bottom: var(--spacing-sm);">
-                        Cuenta físicamente todo el dinero en efectivo que tienes en tu gaveta e ingresa el monto total exacto aquí:
-                    </p>
-                    <input 
-                        type="number" 
-                        id="close-amount" 
-                        name="closing_amount" 
-                        class="form-input" 
-                        step="0.10" 
-                        min="0" 
-                        required 
-                        placeholder="0.00"
-                        style="font-size: 1.5rem; padding: 0.75rem 1rem; font-weight: 700; color: var(--color-accent);"
-                    >
+                <p class="text-muted" style="font-size: 0.875rem; margin-bottom: var(--spacing-lg);">
+                    Cuenta físicamente el efectivo, vouchers de tarjetas y montos de Yape/Plin de tu turno, e ingrésalos para calcular automáticamente el balance y descuadre de caja.
+                </p>
+
+                <div class="table-container mb-lg" style="box-shadow: none; border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                    <table class="table" style="font-size: 0.9375rem;">
+                        <thead>
+                            <tr style="background: var(--color-bg);">
+                                <th>Método Pago</th>
+                                <th class="text-right">Sistema (Esperado)</th>
+                                <th class="text-center" style="width: 160px;">Arqueo (Real)</th>
+                                <th class="text-right">Diferencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Efectivo -->
+                            <tr>
+                                <td><strong>💵 Efectivo</strong></td>
+                                <td class="text-right" id="close-expected-cash">S/ 0.00</td>
+                                <td>
+                                    <input type="number" id="close-actual-cash" name="actual_cash" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                </td>
+                                <td class="text-right" id="close-diff-cash" style="font-weight:700;">S/ 0.00</td>
+                            </tr>
+                            <!-- Tarjeta -->
+                            <tr>
+                                <td><strong>💳 Tarjeta</strong></td>
+                                <td class="text-right" id="close-expected-card">S/ 0.00</td>
+                                <td>
+                                    <input type="number" id="close-actual-card" name="actual_card" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                </td>
+                                <td class="text-right" id="close-diff-card" style="font-weight:700;">S/ 0.00</td>
+                            </tr>
+                            <!-- Yape / Plin -->
+                            <tr>
+                                <td><strong>📱 Yape / Plin</strong></td>
+                                <td class="text-right" id="close-expected-yape">S/ 0.00</td>
+                                <td>
+                                    <input type="number" id="close-actual-yape" name="actual_yape" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                </td>
+                                <td class="text-right" id="close-diff-yape" style="font-weight:700;">S/ 0.00</td>
+                            </tr>
+                            <!-- Total General -->
+                            <tr style="background: var(--color-bg); font-weight: 700;">
+                                <td>TOTAL GENERAL</td>
+                                <td class="text-right" id="close-total-expected" style="color: var(--color-primary);">S/ 0.00</td>
+                                <td class="text-right" id="close-total-actual" style="text-align: right; padding-right: 2.5rem;">S/ 0.00</td>
+                                <td class="text-right" id="close-total-diff">S/ 0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Notas de Cierre y Descuadres (Opcional)</label>
-                    <textarea id="close-notes" name="notes" class="form-textarea" rows="2" placeholder="Ej: Sencillo completo, descuadre de S/ 0.50 por vuelto, etc..."></textarea>
+                    <textarea id="close-notes" name="notes" class="form-textarea" rows="2" placeholder="Ej: Todo cuadra conforme, descuadre de S/ 0.50 por vuelto, etc..."></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-accent btn-full btn-lg" id="btn-close-cash">
-                    🔒 Realizar Arqueo y Cerrar Caja
+                    🔒 Realizar Arqueo Detallado y Cerrar Caja
                 </button>
             </form>
         </div>
@@ -118,6 +153,7 @@
 
 <script>
     let activeCashSession = null;
+    let expectedAmounts = { cash: 0, card: 0, yape: 0 };
 
     async function checkCashStatus() {
         try {
@@ -137,10 +173,29 @@
                 document.getElementById('cash-tag-opened-at').textContent = "Abierto: " + new Date(activeCashSession.opened_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 document.getElementById('cash-show-opening').textContent = formatCurrency(activeCashSession.opening_amount);
                 
-                // Calcular total estimado (Apertura + Ventas en Efectivo)
+                // Procesar montos esperados
                 const cashSales = parseFloat(result.cash_sales_total || 0);
-                const estimatedTotal = parseFloat(activeCashSession.opening_amount) + cashSales;
-                document.getElementById('cash-show-estimated').textContent = formatCurrency(estimatedTotal);
+                const cardSales = parseFloat(result.card_sales_total || 0);
+                const yapeSales = parseFloat(result.yape_sales_total || 0);
+                
+                expectedAmounts.cash = parseFloat(activeCashSession.opening_amount) + cashSales;
+                expectedAmounts.card = cardSales;
+                expectedAmounts.yape = yapeSales;
+
+                // Mostrar esperados en la tabla de arqueo
+                document.getElementById('close-expected-cash').textContent = formatCurrency(expectedAmounts.cash);
+                document.getElementById('close-expected-card').textContent = formatCurrency(expectedAmounts.card);
+                document.getElementById('close-expected-yape').textContent = formatCurrency(expectedAmounts.yape);
+
+                // Inicializar valores de arqueo con los montos del sistema para facilitar el conteo
+                document.getElementById('close-actual-cash').value = expectedAmounts.cash.toFixed(2);
+                document.getElementById('close-actual-card').value = expectedAmounts.card.toFixed(2);
+                document.getElementById('close-actual-yape').value = expectedAmounts.yape.toFixed(2);
+
+                // Calcular total estimado en caja chica
+                document.getElementById('cash-show-estimated').textContent = formatCurrency(expectedAmounts.cash);
+
+                calculateArqueoDiffs();
 
                 document.getElementById('cash-open-section').style.display = 'block';
                 document.getElementById('cash-open-section').classList.remove('hidden');
@@ -153,6 +208,48 @@
         } catch (error) {
             console.error('Error:', error);
             showToast('Error de conexión con el módulo de caja', 'error');
+        }
+    }
+
+    function calculateArqueoDiffs() {
+        const actualCash = parseFloat(document.getElementById('close-actual-cash').value || 0);
+        const actualCard = parseFloat(document.getElementById('close-actual-card').value || 0);
+        const actualYape = parseFloat(document.getElementById('close-actual-yape').value || 0);
+
+        // Diferencias
+        const diffCash = actualCash - expectedAmounts.cash;
+        const diffCard = actualCard - expectedAmounts.card;
+        const diffYape = actualYape - expectedAmounts.yape;
+
+        // Totales
+        const totalExpected = expectedAmounts.cash + expectedAmounts.card + expectedAmounts.yape;
+        const totalActual = actualCash + actualCard + actualYape;
+        const totalDiff = totalActual - totalExpected;
+
+        // Pintar diferencias en la tabla
+        renderDiffCell('close-diff-cash', diffCash);
+        renderDiffCell('close-diff-card', diffCard);
+        renderDiffCell('close-diff-yape', diffYape);
+
+        // Pintar totales
+        document.getElementById('close-total-expected').textContent = formatCurrency(totalExpected);
+        document.getElementById('close-total-actual').textContent = formatCurrency(totalActual);
+        renderDiffCell('close-total-diff', totalDiff);
+    }
+
+    function renderDiffCell(elementId, value) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        el.textContent = (value >= 0 ? "+ " : "") + formatCurrency(value);
+        
+        if (Math.abs(value) < 0.01) {
+            el.textContent = "S/ 0.00";
+            el.style.color = 'var(--color-text-light)';
+        } else if (value > 0) {
+            el.style.color = 'var(--color-success)'; // Sobrante
+        } else {
+            el.style.color = 'var(--color-error)'; // Faltante
         }
     }
 
@@ -194,8 +291,13 @@
     async function handleCloseCash(event) {
         event.preventDefault();
         
-        const closeAmount = parseFloat(document.getElementById('close-amount').value);
-        if (!confirm(`¿Estás seguro de cerrar caja con un arqueo físico de S/ ${closeAmount.toFixed(2)}? Esta acción finalizará tu turno.`)) {
+        const actualCash = parseFloat(document.getElementById('close-actual-cash').value || 0);
+        const actualCard = parseFloat(document.getElementById('close-actual-card').value || 0);
+        const actualYape = parseFloat(document.getElementById('close-actual-yape').value || 0);
+        
+        const totalActual = actualCash + actualCard + actualYape;
+        
+        if (!confirm(`¿Estás seguro de cerrar caja con un arqueo físico total de S/ ${totalActual.toFixed(2)}?`)) {
             return;
         }
 
@@ -204,10 +306,16 @@
         btn.disabled = true;
         btn.innerHTML = '⏳ Cerrando Caja...';
 
+        // Estructurar el cierre detallado
         const data = {
             id: document.getElementById('cash-session-id').value,
-            closing_amount: closeAmount,
-            notes: document.getElementById('close-notes').value
+            closing_amount: actualCash, // Se guarda el efectivo real como monto principal de caja
+            notes: document.getElementById('close-notes').value,
+            arqueo_detallado: {
+                cash: { expected: expectedAmounts.cash, actual: actualCash, diff: actualCash - expectedAmounts.cash },
+                card: { expected: expectedAmounts.card, actual: actualCard, diff: actualCard - expectedAmounts.card },
+                yape: { expected: expectedAmounts.yape, actual: actualYape, diff: actualYape - expectedAmounts.yape }
+            }
         };
 
         try {

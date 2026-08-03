@@ -64,10 +64,37 @@
                 <span class="text-muted">Impuestos Recaudados (18%)</span>
                 <strong id="rep-tax-total">S/ 0.00</strong>
             </div>
-            <div style="display: flex; justify-content: space-between;">
+            <div class="display: flex; justify-content: space-between;">
                 <span class="text-muted">Margen Operativo Promedio</span>
                 <strong id="rep-margin-profit">0.0%</strong>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reporte de Empleados y Comisiones -->
+<div class="card" style="margin-bottom: var(--spacing-2xl);">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.125rem;">👥 Ventas y Comisiones por Empleado/Vendedor</h3>
+        <span class="tag" style="background: var(--color-primary); color: white; font-weight:600;">Comisión Base: 5%</span>
+    </div>
+    <div class="card-body">
+        <div class="table-container" style="box-shadow: none; border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <table class="table">
+                <thead>
+                    <tr style="background: var(--color-bg);">
+                        <th>Vendedor / Colaborador</th>
+                        <th class="text-center">Ventas Realizadas</th>
+                        <th class="text-right">Venta Total Bruta (S/)</th>
+                        <th class="text-right">Comisión Ganada (5%) (S/)</th>
+                    </tr>
+                </thead>
+                <tbody id="report-employees-body">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted" style="padding: 2rem;">Cargando comisiones...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -108,6 +135,35 @@
                 totalTax += parseFloat(sale.tax || 0);
                 totalSubtotal += parseFloat(sale.subtotal || 0);
             });
+
+            // Procesar Ventas y Comisiones por Empleado
+            const employeeSales = {};
+            sales.forEach(sale => {
+                const seller = sale.user_name || 'Administrador / Admin';
+                if (!employeeSales[seller]) {
+                    employeeSales[seller] = { count: 0, total: 0 };
+                }
+                employeeSales[seller].count++;
+                employeeSales[seller].total += parseFloat(sale.total);
+            });
+
+            // Renderizar Ventas por Empleado
+            const employeesBody = document.getElementById('report-employees-body');
+            if (Object.keys(employeeSales).length === 0) {
+                employeesBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 2rem;">No se registran ventas de colaboradores aún</td></tr>';
+            } else {
+                employeesBody.innerHTML = Object.entries(employeeSales).map(([name, data]) => {
+                    const commission = data.total * 0.05; // 5% Comisión
+                    return `
+                        <tr>
+                            <td><strong>👤 ${name}</strong></td>
+                            <td class="text-center"><span class="tag" style="background: rgba(37,99,235,0.05); color: var(--color-primary); font-weight:700;">${data.count} ventas</span></td>
+                            <td class="text-right"><strong>${formatCurrency(data.total)}</strong></td>
+                            <td class="text-right"><strong class="text-success">${formatCurrency(commission)}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
             // Renderizar Métodos de Pago
             const paymentsContainer = document.getElementById('report-payments-container');

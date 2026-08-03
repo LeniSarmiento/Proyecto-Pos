@@ -8,6 +8,13 @@ if (!isLoggedIn()) {
 }
 
 $user = getCurrentUser();
+
+// Proteger panel administrativo (Solo administradores)
+if ($user['role'] !== 'admin') {
+    header('Location: pos_dashboard.php');
+    exit;
+}
+
 $page = $_GET['page'] ?? 'home';
 ?>
 <!doctype html>

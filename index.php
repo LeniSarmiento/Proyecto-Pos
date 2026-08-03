@@ -1,14 +1,19 @@
 <?php
 require_once __DIR__ . '/config/supabase.php';
 
-// Determinar página actual
-$page = $_GET['page'] ?? 'pos';
-
-// Proteger rutas privadas (Redirigir a login si no está autenticado)
-$publicPages = ['login'];
-if (!in_array($page, $publicPages) && !isLoggedIn()) {
-    $page = 'login';
+// Redirección inteligente si ya está logueado
+if (isLoggedIn()) {
+    $currentUser = getCurrentUser();
+    if ($currentUser['role'] === 'admin') {
+        header('Location: dashboard.php');
+    } else {
+        header('Location: pos_dashboard.php');
+    }
+    exit;
 }
+
+// Determinar página actual
+$page = $_GET['page'] ?? 'login'; // Forzar a login por defecto si no está logueado
 ?>
 <!doctype html>
 <html lang="es">

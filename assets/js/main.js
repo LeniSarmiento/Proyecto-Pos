@@ -364,7 +364,11 @@ class AuthManager {
                 AppState.user = result.user;
                 showToast('Bienvenido', 'success');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.php';
+                    if (result.user.role === 'admin') {
+                        window.location.href = 'dashboard.php';
+                    } else {
+                        window.location.href = 'pos_dashboard.php';
+                    }
                 }, 1000);
             } else {
                 showToast(result.error || 'Credenciales inválidas', 'error');

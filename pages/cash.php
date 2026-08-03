@@ -105,7 +105,7 @@
                                 <td><strong>💵 Efectivo</strong></td>
                                 <td class="text-right" id="close-expected-cash">S/ 0.00</td>
                                 <td>
-                                    <input type="number" id="close-actual-cash" name="actual_cash" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                    <input type="number" id="close-actual-cash" name="actual_cash" class="form-input" required step="0.01" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
                                 </td>
                                 <td class="text-right" id="close-diff-cash" style="font-weight:700;">S/ 0.00</td>
                             </tr>
@@ -114,7 +114,7 @@
                                 <td><strong>💳 Tarjeta</strong></td>
                                 <td class="text-right" id="close-expected-card">S/ 0.00</td>
                                 <td>
-                                    <input type="number" id="close-actual-card" name="actual_card" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                    <input type="number" id="close-actual-card" name="actual_card" class="form-input" required step="0.01" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
                                 </td>
                                 <td class="text-right" id="close-diff-card" style="font-weight:700;">S/ 0.00</td>
                             </tr>
@@ -123,7 +123,7 @@
                                 <td><strong>📱 Yape / Plin</strong></td>
                                 <td class="text-right" id="close-expected-yape">S/ 0.00</td>
                                 <td>
-                                    <input type="number" id="close-actual-yape" name="actual_yape" class="form-input" required step="0.10" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
+                                    <input type="number" id="close-actual-yape" name="actual_yape" class="form-input" required step="0.01" min="0" value="0.00" oninput="calculateArqueoDiffs()" style="padding: 4px var(--spacing-sm); text-align: right; font-weight:700;">
                                 </td>
                                 <td class="text-right" id="close-diff-yape" style="font-weight:700;">S/ 0.00</td>
                             </tr>

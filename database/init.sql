@@ -232,6 +232,14 @@ CREATE POLICY "Usuarios pueden crear su propia caja"
     TO authenticated
     WITH CHECK (user_id = auth.uid());
 
+CREATE POLICY "Usuarios pueden actualizar su propia caja"
+    ON public.cash_register FOR UPDATE
+    TO authenticated
+    USING (user_id = auth.uid() OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'admin'
+    ));
+
 -- ============================================
 -- TRIGGERS PARA ACTUALIZAR FECHAS
 -- ============================================
